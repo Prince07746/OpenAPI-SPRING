@@ -1,0 +1,125 @@
+openapi: 3.0.0
+info:
+  title: Product Management API
+  description: API for managing products
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local Development Server
+  - url: https://fortesting.com/api
+    description: Testing Server
+  - url: https://forproduction.com/api
+    description: Production Server
+# for development swagger access to http://localhost:8080/swagger-ui/index.html
+paths:
+  /products/{id}:
+    get:
+      summary: Retrieve a specific product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the product to retrieve
+          schema:
+            type: integer
+        - name: Accept-Language
+          in: header
+          required: true
+          description: Preferred language for response
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Product not found
+    put:
+      summary: Update an existing product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the product to update
+          schema:
+            type: integer
+        - name: Accept-Language
+          in: header
+          required: true
+          description: Preferred language for response
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Product"
+      responses:
+        "200":
+          description: Product updated successfully
+        "404":
+          description: Product not found
+    delete:
+      summary: Delete a specific product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the product to delete
+          schema:
+            type: integer
+        - name: Accept-Language
+          in: header
+          required: true
+          description: Preferred language for response
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Product deleted successfully
+        "404":
+          description: Product not found
+
+  /products:
+    post:
+      summary: Create a new product
+      parameters:
+        - name: Accept-Language
+          in: header
+          required: true
+          description: Preferred language for response
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Product"
+      responses:
+        "201":
+          description: Product created successfully
+        "400":
+          description: Invalid product details
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Laptop"
+        price:
+          type: integer
+          format: float
+          example: 999.99
+
