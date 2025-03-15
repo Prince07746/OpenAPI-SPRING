@@ -1,8 +1,8 @@
 package org.openapi.openapispring.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.openapi.openapispring.Model.ProductId;
 import org.openapi.openapispring.Model.Product;
 import org.openapi.openapispring.Repository.ProductRepository;
 import org.springframework.stereotype.Service;
@@ -17,40 +17,24 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public List<Product> findProductsByPriceRange(double minPrice, double maxPrice) {
-        return productRepository.getAllProducts().stream()
-                .filter(product -> product.getPrice() >= minPrice && product.getPrice() <= maxPrice)
-                .collect(Collectors.toList());
-    }
 
-    public void applyDiscount(double discountPercentage) {
-        productRepository.getAllProducts().forEach(product -> {
-            double newPrice = product.getPrice() - (product.getPrice() * discountPercentage / 100);
-            product.setPrice(newPrice);
-        });
-    }
-
-    public Product findProductById(int id) {
-
+    public Product findProductById(String id) {
         return productRepository.findById(id);
     }
 
-    public int getProductCount() {
-        return productRepository.getAllProducts().size();
+    public List<Product> getProductList(){
+        return productRepository.getAllProducts();
     }
-
-//    public List<Product> findProductsSortedByPrice(boolean ascending) {
-//    }
 
     public void addProduct(Product product) {
         productRepository.addProduct(product);
     }
 
-    public void updateProduct(int id, Product product) {
+    public void updateProduct(String id, Product product) {
         productRepository.updateProduct(id, product);
     }
 
-    public void removeProduct(int id) {
+    public void removeProduct(String id) {
         productRepository.removeProduct(id);
     }
 }
