@@ -1,17 +1,31 @@
 package org.openapi.openapispring.Controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.openapi.openapispring.Config.Message;
+import org.openapi.openapispring.Model.ProductId;
 import org.openapi.openapispring.Model.Product;
 import org.openapi.openapispring.Service.ProductService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 
-
+@CrossOrigin(origins = "*") // Allow all origins
 @RestController
 @RequestMapping("/product")
+@Tag(name = "open api product management ", description = "manage products ")
 public class AppController {
 
     private final ProductService productService;
@@ -21,42 +35,178 @@ public class AppController {
     }
 
 
+
+
+
+
+
+    @Operation(method = "GET", summary = "get a specific product using id", responses = {
+            @ApiResponse(
+                    responseCode = "200", description = "product retrieved successfully", content =
+                    @Content(schema = @Schema(implementation = Product.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400", description = "bad request", content = @Content(schema =
+                    @Schema(implementation = Message.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404", description = "product not found", content = @Content(schema =
+                    @Schema(implementation = Message.class)
+            ))
+    })
+
     @GetMapping("/{id}")
-    public Product getProduct(@PathVariable(name="id") int id){
-      return productService.findProductById(id);
+    public ResponseEntity<?> getProduct(
+            @Parameter(
+                    description = "Product ID", name = "id", schema = @Schema(implementation = ProductId.class),
+                    in = ParameterIn.PATH, example = "\"1aa\"", required = true
+            )
+            @PathVariable(name = "id") ProductId productId
+    ) {
+        Product product = productService.findProductById(productId.getValue());
+        if(product == null){
+           throw new NoSuchElementException("Product with ID: " + productId + "  not found");
+        }
+        return ResponseEntity.ok(product);
     }
 
 
+
+
+
+
+
+
+
+    @Operation(method = "POST", summary ="Create a new product",responses = {
+            @ApiResponse(
+                    responseCode = "201", description = "Product created successfully",
+                    content = @Content(schema = @Schema(implementation = Message.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400", description = "Bad request",
+                    content = @Content(schema = @Schema(implementation = Message.class))
+            )
+    })
     @PostMapping()
-    public ResponseEntity<String> createNewProduct(@RequestBody Product product){
+    public ResponseEntity<?> createNewProduct(
+            @Parameter(
+                    description = "Product",name="product",content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = Product.class)),required = true
+            )
+            @RequestBody Product product
+    ) {
+
+        if(product == null){
+            throw new HttpMessageNotReadableException("Request body is required and cannot be empty");
+        }
         productService.addProduct(product);
-        return ResponseEntity.status(HttpStatus.CREATED).body("product created");
+        return ResponseEntity.status(HttpStatus.CREATED).body(new Message("Product created"));
     }
 
+
+
+
+
+
+
+
+    @Operation(method = "PUT", summary ="Update an existing product",responses = {
+            @ApiResponse(
+                    responseCode = "200", description = "Product update successfully",
+                    content = @Content(schema = @Schema(implementation = Message.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400", description = "Bad request",
+                    content = @Content(schema = @Schema(implementation = Message.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404", description = "Product not found",
+                    content = @Content(schema = @Schema(implementation = Message.class))
+            )
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<String> upDateProduct(@RequestBody Product product,@PathVariable(name="id") int id){
-
-        if(productService.findProductById(id) != null){
-            productService.updateProduct(id,product);
-            return ResponseEntity.ok("Product updated successfully");
-        }else{
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
+    public ResponseEntity<?> upDateProduct(
+            @Parameter(
+                    description = "Product ID", name = "id", schema = @Schema(implementation = ProductId.class),
+                    in = ParameterIn.PATH, example = "\"1aa\"", required = true
+            )
+            @PathVariable(name = "id") ProductId productId,
+            @RequestBody Product product
+    ) {
+        if (productService.findProductById(productId.toString()) != null) {
+            productService.updateProduct(productId.toString(), product);
+            return ResponseEntity.ok(new Message("Product updated successfully"));
+        } else {
+            throw new NoSuchElementException("Product with ID: " + productId + "  not found");
         }
 
     }
 
+
+
+
+
+
+
+    @Operation(method = "DELETE", summary ="delete an existing product",responses = {
+            @ApiResponse(
+                    responseCode = "204", description = "Product deleted successfully",
+                    content = @Content(schema = @Schema(implementation = Message.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400", description = "Bad request",
+                    content = @Content(schema = @Schema(implementation = Message.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404", description = "Product not found",
+                    content = @Content(schema = @Schema(implementation = Message.class))
+            )
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable(name="id") int id){
-
-        if(productService.findProductById(id) != null){
-            productService.removeProduct(id);
-            return ResponseEntity.ok("Product deleted successfully");
-        }else{
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product to delete not found");
+    public ResponseEntity<?> deleteProduct(
+            @Parameter(
+                    description = "Product ID", name = "id", schema = @Schema(implementation = ProductId.class),
+                    in = ParameterIn.PATH, example = "\"1aa\"", required = true
+            )
+            @PathVariable(name = "id") ProductId productId
+    ) {
+        if (productService.findProductById(productId.toString()) != null) {
+            productService.removeProduct(productId.toString());
+            return ResponseEntity.status(HttpStatusCode.valueOf(204)).body(new Message("Product deleted successfully"));
+        } else {
+            throw new NoSuchElementException("Product with ID: " + productId + "  not found");
         }
     }
 
 
+
+
+
+
+    @Operation(method = "GET", summary ="get product list",responses = {
+            @ApiResponse(
+                    responseCode = "204", description = "Product empty list",
+                    content = @Content(schema = @Schema(implementation = Message.class))
+            ),
+            @ApiResponse(
+                    responseCode = "200", description = "Product list retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = Message.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400", description = "Bad request",
+                    content = @Content(schema = @Schema(implementation = Message.class))
+            )
+    })
+    @GetMapping()
+    public ResponseEntity<?> getAllProduct() {
+        List<Product> products = productService.getProductList();
+
+        if (products.isEmpty()) {
+            return ResponseEntity.ok(new Message("Product list empty"));
+        }
+        return  ResponseEntity.ok(products);
+    }
 
 
 }

@@ -17,7 +17,7 @@ public class Config {
     @Bean
     public OpenAPI customOpenAPI(){
         return  new OpenAPI()
-                .info(new Info().title("Product API").version("2.8.5"))
+                .info(new Info().title("Product API").version("1.0.0"))
                 .servers(Arrays.asList(
                         new Server().url("http://localhost:8080").description("Local Development Server"),
                         new Server().url("https://fortesting.com/api").description("Testing Server"),
